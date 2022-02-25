@@ -18,7 +18,7 @@ For the widgets in particular, I'm going to start with basics. Gathering data.
     - Number of ~~values~~
   
 They also almost always relate to a data model. Maybe a callback in the class itself?
-Lines are significant. tabs too.
+Lines are significant.
 ```
 # this will be a comment!
 ~WidgetType
@@ -31,3 +31,4 @@ Lines are significant. tabs too.
 ```
 
 ### Written by Dennis Capone
+### ddmac.org
