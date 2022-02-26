@@ -11,11 +11,27 @@ import java.io.FileInputStream
 import java.io.InputStreamReader
 import java.util.*
 
+/**
+ * This class parses the .capml file
+ *
+ * @property [ctx] the context used to generate Android UI Elements.
+ * @constructor primes the use of the parse() method.
+ */
+
 class CapMLParser(private val ctx: Context) {
 
-    //we want to take the CapML, determine the item type, and generate it.
-    //TODO need to add an exception for the filetype being wrong =/
+//TODO need to add an exception for the filetype being wrong =/
+
+    /**
+     * Takes the [capmlFile] and opens a stream to it.
+     * Manually iterates throug bytes.
+     * Looks for the .capml...decorators? Flags?
+     *
+     * @return a [ScrollView] containing the elements, order maintained.
+     */
+
     fun parse(capmlFile: File): ScrollView {
+        //LinearLayout to contain elements. Basic "Style"
         val ll = LinearLayout(ctx).apply {
             layoutParams = ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -24,27 +40,24 @@ class CapMLParser(private val ctx: Context) {
             orientation = LinearLayout.VERTICAL
         }
 
-        //type of element -> ~
-        //If I come across this char, the next two characters are the element type
-        //any content -> +
-        //element end -> -
+        //Sut up buffered reader to go through bytes.
         val fos = FileInputStream(capmlFile)
         val br = BufferedReader(InputStreamReader(fos))
 
-        var r = 0
-        var element: Int = 0
-        var content: LinkedList<String> = LinkedList()
+        var r = 0 //EOF is -1
+        var element = 0 //int representation of the parsed element.
+        var content: LinkedList<String> = LinkedList() //Content when generating views.
 
         while (r != -1) {
-            r = br.read()
-            if (r == -1) break
-            when (Char(r)) {
-                '#' -> { br.readLine(); continue }
-                '~' -> {
+            r = br.read() //read the next byte
+            if (r == -1) break //if it somehow gets here with EOF, stop
+            when (Char(r)) { //int to char to check decorators
+                '#' -> { br.readLine(); continue } //skip to end of line on comment char
+                '~' -> { //the element identifier is the bytes of the following two element chars
                     element = br.read() + br.read()
-                    br.skip(1) //skip the newline
+                    br.skip(1)
                 }
-                '+' -> {
+                '+' -> { //add the string following the decorator
                     content.add(
                         br
                             .readLine()
@@ -52,23 +65,16 @@ class CapMLParser(private val ctx: Context) {
                             .trim()
                     )
                 }
-                '-' -> {
+                '-' -> {//End of Element decorator. Adds all views to the linear layout.
                     ll.addView(createElement(element, content))
-                    //this is messin it up
-                    //content.clear()
                     content = LinkedList()
-                    br.read() //puts us at the end of the line?
+                    br.read()
                 }
-                else -> continue
+                else -> continue //move along. move along.
             }
         }
 
-
-        (ll as ViewGroup).children.forEach {
-            println(it::class.simpleName)
-        }
-
-
+        //Wrap the linear layout in a scroll view. Accounts for many elements. More "Style"
         return ScrollView(ctx)
             .apply {
                 layoutParams = ViewGroup.LayoutParams(
@@ -79,6 +85,13 @@ class CapMLParser(private val ctx: Context) {
             }
     }
 
+
+    /**
+     * Takes [element] value to determine the element type.
+     * Depending on the [element], the [content] may be one or many.
+     *
+     * @return the [View] subclass denoted by the [element]
+     */
 
     private fun createElement(
         element: Int,
@@ -104,19 +117,44 @@ class CapMLParser(private val ctx: Context) {
     }
 
 
+    /**
+     * Makes the [CheckBox] text content be [content]
+     *
+     * @return [CheckBox]
+     */
     private fun createCheckBox(content: String) =
         CheckBox(ctx).apply { text = content }
+
+    /**
+     * Makes the [EditText] hint content be [content]
+     *
+     * @return [EditText]
+     */
 
     private fun createEditText(content: String) =
         EditText(ctx).apply { hint = content }
 
+    /**
+     * Makes the [TextView] text content be [content]
+     *
+     * @return [TextView]
+     */
+
     private fun createTextView(content: String) =
         TextView(ctx).apply { text = content }
+
+    /**
+     * Creates a [Spinner]
+     * Creates an [ArrayAdapter] from the [content], with a space pushed to the front
+     * Applies the [ArrayAdapter] to the [Spinner]
+     *
+     * @return [Spinner]
+     */
 
     private fun createSpinner(content: LinkedList<String>): Spinner {
         val spinner = Spinner(ctx)
         content.push(" ")
-        val adapter = ArrayAdapter<String>(ctx, R.layout.spinner_content,content)
+        val adapter = ArrayAdapter(ctx, R.layout.spinner_content,content)
         spinner.adapter = adapter
         return spinner
     }
