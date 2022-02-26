@@ -33,10 +33,10 @@ Current widgets -> Tag? Decorator?:
 
 ### Prerequisites
 
- - Android SDK 30 which can be gotten [here](https://developer.android.com/studio/index.html#command-tools)
-Or more easily, [here](https://developer.android.com/studio)
+ - Android SDK 30 which can be gotten [here](https://developer.android.com/studio/index.html#command-tools),
+or more easily, [here](https://developer.android.com/studio)
 
- - You can use the gradle wrapper or download gradle [here](https://gradle.org/install/)
+ - You can use the Gradle Wrapper or download Gradle [here](https://gradle.org/install/)
 
  - Git
 
@@ -65,11 +65,6 @@ Eventually? `./gradlew test` and `./gradlew connectedAndroidTest`
 Build the aar file and add it to your project source code. 
 Then add it as a dependency to your project.
 
-## Built With
-Uh?
-
-- [Creative Commons](https://creativecommons.org/) - Used to choose
-  the license
 
 ## Contributing
 
@@ -87,7 +82,10 @@ Current Version: 0.0.1
   
 ## License
 
-Haven't decided yet!
+Uh?
+Dunno yet...
+- [Creative Commons](https://creativecommons.org/) - Used to choose
+  the license
 
 ## Acknowledgement
- - That weird state where your too tired but can't stop.
+ - That weird flow state.
