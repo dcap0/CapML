@@ -33,7 +33,7 @@ class CapMLParser(private val ctx: Context) {
 
         var r = 0
         var element: Int = 0
-        val content: LinkedList<String> = LinkedList()
+        var content: LinkedList<String> = LinkedList()
 
         while (r != -1) {
             r = br.read()
@@ -54,7 +54,9 @@ class CapMLParser(private val ctx: Context) {
                 }
                 '-' -> {
                     ll.addView(createElement(element, content))
-                    content.clear()
+                    //this is messin it up
+                    //content.clear()
+                    content = LinkedList()
                     br.read() //puts us at the end of the line?
                 }
                 else -> continue
@@ -113,6 +115,7 @@ class CapMLParser(private val ctx: Context) {
 
     private fun createSpinner(content: LinkedList<String>): Spinner {
         val spinner = Spinner(ctx)
+        content.push(" ")
         val adapter = ArrayAdapter<String>(ctx, R.layout.spinner_content,content)
         spinner.adapter = adapter
         return spinner
