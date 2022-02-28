@@ -18,8 +18,6 @@ import java.util.*
 
 class CapMLParser(private val ctx: Context) {
 
-//TODO need to add an exception for the filetype being wrong =/
-
     /**
      * Takes the [capmlFile] and opens a stream to it.
      * Manually iterates throug bytes.
