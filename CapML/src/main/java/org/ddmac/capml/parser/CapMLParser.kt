@@ -1,9 +1,13 @@
 package org.ddmac.capml.parser
 
 import android.content.Context
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import com.google.gson.Gson
+import com.google.gson.JsonObject
 import org.ddmac.capml.R
 import org.ddmac.capml.exceptions.CapmlFileFormatException
 import java.io.*
@@ -17,6 +21,9 @@ import java.util.*
  */
 
 class CapMLParser(private val ctx: Context) {
+
+    //the data will go here.
+    val data = JsonObject()
 
     /**
      * Takes the [capmlFile] and opens a stream to it.
@@ -115,6 +122,7 @@ class CapMLParser(private val ctx: Context) {
         var r = 0 //EOF is -1
         var element = 0 //int representation of the parsed element.
         var content: LinkedList<String> = LinkedList() //Content when generating views.
+        var keys: LinkedList<String> = LinkedList()
 
         while (r != -1) {
             r = br.read() //read the next byte
@@ -133,8 +141,17 @@ class CapMLParser(private val ctx: Context) {
                             .trim()
                     )
                 }
+                '=' -> {//add the key following the decorator.
+                    keys.add(br.readLine())
+                }
                 '-' -> {//End of Element decorator. Adds view to the linear layout.
-                    ll.addView(createElement(element, content))
+                    ll.addView(
+                        createElement(
+                            element, 
+                            content,
+                            keys
+                        )
+                    )
                     content = LinkedList()
                     br.read()
                 }
@@ -166,20 +183,33 @@ class CapMLParser(private val ctx: Context) {
 
     private fun createElement(
         element: Int,
-        content: LinkedList<String>
+        content: LinkedList<String>,
+        keys: LinkedList<String>
     ): View {
         return when (element) {
             133 -> {
-                createCheckBox(content.first)
+                createCheckBox(
+                    content.first,
+                    keys.first
+                )
             }
             170 -> {
-                createTextView(content.first)
+                createTextView(
+                    content.first,
+                    keys.first
+                )
             }
             153 -> {
-                createEditText(content.first)
+                createEditText(
+                    content.first,
+                    keys.first
+                )
             }
             163 -> {
-                createSpinner(content)
+                createSpinner(
+                    content,
+                    keys.first
+                )
             }
             else -> {
                 View(ctx)
@@ -193,8 +223,11 @@ class CapMLParser(private val ctx: Context) {
      *
      * @return [CheckBox]
      */
-    private fun createCheckBox(content: String) =
-        CheckBox(ctx).apply { text = content }
+    private fun createCheckBox(content: String, key: String) =
+        CheckBox(ctx).apply { 
+            text = content
+            setOnCheckedChangeListener { _, isChecked -> data.addProperty(key,isChecked) }
+        }
 
     /**
      * Makes the [EditText] hint content be [content]
@@ -202,8 +235,11 @@ class CapMLParser(private val ctx: Context) {
      * @return [EditText]
      */
 
-    private fun createEditText(content: String) =
-        EditText(ctx).apply { hint = content }
+    private fun createEditText(content: String, key: String) =
+        EditText(ctx).apply {
+            hint = content
+            addTextChangedListener(ETWatcher((key)))
+        }
 
     /**
      * Makes the [TextView] text content be [content]
@@ -211,7 +247,7 @@ class CapMLParser(private val ctx: Context) {
      * @return [TextView]
      */
 
-    private fun createTextView(content: String) =
+    private fun createTextView(content: String, key: String) =
         TextView(ctx).apply { text = content }
 
     /**
@@ -222,13 +258,36 @@ class CapMLParser(private val ctx: Context) {
      * @return [Spinner]
      */
 
-    private fun createSpinner(content: LinkedList<String>): Spinner {
-        val spinner = Spinner(ctx)
+    private fun createSpinner(content: LinkedList<String>, key: String): Spinner {
         content.push(" ")
-        val adapter = ArrayAdapter(ctx, R.layout.spinner_content,content)
-        spinner.adapter = adapter
-        return spinner
+         return Spinner(ctx).apply {
+            adapter = ArrayAdapter(ctx, R.layout.spinner_content,content)
+            onItemSelectedListener = SPListener(key,this)
+        }
     }
 
+    //Extension function to allow the user to map their .capml data to an associated class.
+    inline fun <reified T> JsonObject.toClass() = Gson().fromJson(this.asString,T::class.java)
 
+    inner class ETWatcher(val key: String): TextWatcher{
+        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+            data.addProperty(key,s.toString())
+        }
+
+        override fun afterTextChanged(s: Editable?) {}
+
+    }
+
+    inner class SPListener(private val key: String, private val spinner: Spinner): AdapterView.OnItemSelectedListener{
+        override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+            data.addProperty(key, (view as TextView).text.toString())
+        }
+
+        override fun onNothingSelected(parent: AdapterView<*>?) {
+            data.addProperty(key,"")
+        }
+    }
+    
 }
