@@ -5,10 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.core.view.children
-import java.io.BufferedReader
-import java.io.File
-import java.io.FileInputStream
-import java.io.InputStreamReader
+import java.io.*
 import java.util.*
 
 /**
@@ -21,6 +18,7 @@ import java.util.*
 class CapMLParser(private val ctx: Context) {
 
 //TODO need to add an exception for the filetype being wrong =/
+//TODO need to handle decorator characters in the actual string.
 
     /**
      * Takes the [capmlFile] and opens a stream to it.
@@ -73,6 +71,74 @@ class CapMLParser(private val ctx: Context) {
                 else -> continue //move along. move along.
             }
         }
+        br.close()
+        fos.close()
+
+        //Wrap the linear layout in a scroll view. Accounts for many elements. More "Style"
+        return ScrollView(ctx)
+            .apply {
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+                addView(ll)
+            }
+    }
+
+
+    /**
+     * Takes the [capmlFile] and opens a stream to it.
+     * Manually iterates throug bytes.
+     * Looks for the .capml...decorators? Flags?
+     *
+     * @return a [ScrollView] containing the elements, order maintained.
+     */
+
+    fun parse(capmlFile: InputStream): ScrollView {
+        //LinearLayout to contain elements. Basic "Style"
+        val ll = LinearLayout(ctx).apply {
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+            )
+            orientation = LinearLayout.VERTICAL
+        }
+
+        //Sut up buffered reader to go through bytes.
+        val br = BufferedReader(InputStreamReader(capmlFile))
+
+        var r = 0 //EOF is -1
+        var element = 0 //int representation of the parsed element.
+        var content: LinkedList<String> = LinkedList() //Content when generating views.
+
+        while (r != -1) {
+            r = br.read() //read the next byte
+            if (r == -1) break //if it somehow gets here with EOF, stop
+            when (Char(r)) { //int to char to check decorators
+                '#' -> { br.readLine(); continue } //skip to end of line on comment char
+                '~' -> { //the element identifier is the bytes of the following two element chars
+                    element = br.read() + br.read()
+                    br.skip(1)
+                }
+                '+' -> { //add the string following the decorator
+                    content.add(
+                        br
+                            .readLine()
+                            .replaceFirst("+", "")
+                            .trim()
+                    )
+                }
+                '-' -> {//End of Element decorator. Adds all views to the linear layout.
+                    ll.addView(createElement(element, content))
+                    content = LinkedList()
+                    br.read()
+                }
+                else -> continue //move along. move along.
+            }
+        }
+
+        br.close()
+        capmlFile.close()
 
         //Wrap the linear layout in a scroll view. Accounts for many elements. More "Style"
         return ScrollView(ctx)
