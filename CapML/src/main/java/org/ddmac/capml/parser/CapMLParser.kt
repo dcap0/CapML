@@ -1,10 +1,11 @@
-package org.ddmac.capml
+package org.ddmac.capml.parser
 
 import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.core.view.children
+import org.ddmac.capml.R
+import org.ddmac.capml.exceptions.CapmlFileFormatException
 import java.io.*
 import java.util.*
 
@@ -18,7 +19,6 @@ import java.util.*
 class CapMLParser(private val ctx: Context) {
 
 //TODO need to add an exception for the filetype being wrong =/
-//TODO need to handle decorator characters in the actual string.
 
     /**
      * Takes the [capmlFile] and opens a stream to it.
@@ -29,6 +29,13 @@ class CapMLParser(private val ctx: Context) {
      */
 
     fun parse(capmlFile: File): ScrollView {
+
+        if(capmlFile.name.substringAfterLast('.')!="capml"){
+            throw CapmlFileFormatException(
+                "File ${capmlFile.name} is not of type CapML. Please provide a .capml file"
+            )
+        }
+
         //LinearLayout to contain elements. Basic "Style"
         val ll = LinearLayout(ctx).apply {
             layoutParams = ViewGroup.LayoutParams(
@@ -53,7 +60,7 @@ class CapMLParser(private val ctx: Context) {
                 '#' -> { br.readLine(); continue } //skip to end of line on comment char
                 '~' -> { //the element identifier is the bytes of the following two element chars
                     element = br.read() + br.read()
-                    br.skip(1)
+                    br.readLine()
                 }
                 '+' -> { //add the string following the decorator
                     content.add(
@@ -118,7 +125,7 @@ class CapMLParser(private val ctx: Context) {
                 '#' -> { br.readLine(); continue } //skip to end of line on comment char
                 '~' -> { //the element identifier is the bytes of the following two element chars
                     element = br.read() + br.read()
-                    br.skip(1)
+                    br.readLine()
                 }
                 '+' -> { //add the string following the decorator
                     content.add(
@@ -128,7 +135,7 @@ class CapMLParser(private val ctx: Context) {
                             .trim()
                     )
                 }
-                '-' -> {//End of Element decorator. Adds all views to the linear layout.
+                '-' -> {//End of Element decorator. Adds view to the linear layout.
                     ll.addView(createElement(element, content))
                     content = LinkedList()
                     br.read()
