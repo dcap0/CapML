@@ -13,6 +13,5 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "CapML"
-include ':app'
 include ':CapML'
-include ':testapp'
+include ':testapp2'

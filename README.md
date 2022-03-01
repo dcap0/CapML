@@ -33,7 +33,7 @@ Current widgets -> Tag? Decorator?:
 
 ### Prerequisites
 
- - Android SDK 30 which can be gotten [here](https://developer.android.com/studio/index.html#command-tools),
+ - Android SDK 30 which can be found [here](https://developer.android.com/studio/index.html#command-tools),
 or more easily, [here](https://developer.android.com/studio)
 
  - You can use the Gradle Wrapper or download Gradle [here](https://gradle.org/install/)

@@ -11,7 +11,6 @@ import com.google.gson.JsonObject
 import org.ddmac.capml.R
 import org.ddmac.capml.exceptions.CapmlFileFormatException
 import org.ddmac.capml.exceptions.CapmlParseException
-import org.ddmac.capml.exceptions.InvalidCapmlException
 import java.io.*
 import java.util.*
 
@@ -105,14 +104,14 @@ class CapMLParser(private val ctx: Context) {
 
 
     /**
-     * Takes the [capmlFile] and opens a stream to it.
+     * Takes the [capmlData] and opens a stream to it.
      * Manually iterates throug bytes.
      * Looks for the .capml...decorators? Flags?
      *
      * @return a [ScrollView] containing the elements, order maintained.
      */
 
-    fun parse(capmlFile: InputStream): ScrollView {
+    fun parse(capmlData: InputStream): ScrollView {
         //LinearLayout to contain elements. Basic "Style"
         val ll = LinearLayout(ctx).apply {
             layoutParams = ViewGroup.LayoutParams(
@@ -123,7 +122,7 @@ class CapMLParser(private val ctx: Context) {
         }
 
         //Sut up buffered reader to go through bytes.
-        val br = BufferedReader(InputStreamReader(capmlFile))
+        val br = BufferedReader(InputStreamReader(capmlData))
 
         var r = 0 //EOF is -1
         var element = 0 //int representation of the parsed element.
@@ -166,7 +165,7 @@ class CapMLParser(private val ctx: Context) {
         }
 
         br.close()
-        capmlFile.close()
+        capmlData.close()
 
         //Wrap the linear layout in a scroll view. Accounts for many elements. More "Style"
         return ScrollView(ctx)
@@ -195,31 +194,21 @@ class CapMLParser(private val ctx: Context) {
         return when (element) {
             133 -> {
                 if(key==null) throw CapmlParseException("CB element must have key decorator (=) and value")
-                createCheckBox(
-                    content.first,
-                    key
-                )
-
+                data.addProperty(key,"")
+                createCheckBox(content.first,key)
             }
             170 -> {
-                createTextView(
-                    content.first
-                )
+                createTextView(content.first)
             }
             153 -> {
                 if(key == null) throw CapmlParseException("Element ET must have key decorator (=) and value")
-                createEditText(
-                    content.first,
-                    key
-                )
-
+                data.addProperty(key,"")
+                createEditText(content.first,key)
             }
             163 -> {
                 if(key==null) throw CapmlParseException("Element SP must have key decorator (=) and value")
-                createSpinner(
-                    content,
-                    key
-                )
+                data.addProperty(key,"")
+                createSpinner(content,key)
             }
             else -> {
                 View(ctx)
