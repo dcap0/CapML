@@ -10,6 +10,8 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import org.ddmac.capml.R
 import org.ddmac.capml.exceptions.CapmlFileFormatException
+import org.ddmac.capml.exceptions.CapmlParseException
+import org.ddmac.capml.exceptions.InvalidCapmlException
 import java.io.*
 import java.util.*
 
@@ -192,10 +194,12 @@ class CapMLParser(private val ctx: Context) {
     ): View {
         return when (element) {
             133 -> {
+                if(key==null) throw CapmlParseException("CB element must have key decorator (=) and value")
                 createCheckBox(
                     content.first,
-                    key!!
+                    key
                 )
+
             }
             170 -> {
                 createTextView(
@@ -203,15 +207,18 @@ class CapMLParser(private val ctx: Context) {
                 )
             }
             153 -> {
+                if(key == null) throw CapmlParseException("Element ET must have key decorator (=) and value")
                 createEditText(
                     content.first,
-                    key!!
+                    key
                 )
+
             }
             163 -> {
+                if(key==null) throw CapmlParseException("Element SP must have key decorator (=) and value")
                 createSpinner(
                     content,
-                    key!!
+                    key
                 )
             }
             else -> {
@@ -227,7 +234,7 @@ class CapMLParser(private val ctx: Context) {
      * @return [CheckBox]
      */
     private fun createCheckBox(content: String, key: String) =
-        CheckBox(ctx).apply { 
+        CheckBox(ctx).apply {
             text = content
             setOnCheckedChangeListener { _, isChecked -> data.addProperty(key,isChecked) }
         }
