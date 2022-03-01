@@ -57,6 +57,7 @@ class CapMLParser(private val ctx: Context) {
         var r = 0 //EOF is -1
         var element = 0 //int representation of the parsed element.
         var content: LinkedList<String> = LinkedList() //Content when generating views.
+        var key: String? = null
 
         while (r != -1) {
             r = br.read() //read the next byte
@@ -75,8 +76,11 @@ class CapMLParser(private val ctx: Context) {
                             .trim()
                     )
                 }
+                '=' -> {//add the key following the decorator.
+                    key = br.readLine()
+                }
                 '-' -> {//End of Element decorator. Adds all views to the linear layout.
-                    ll.addView(createElement(element, content))
+                    ll.addView(createElement(element, content,key))
                     content = LinkedList()
                     br.read()
                 }
@@ -122,7 +126,7 @@ class CapMLParser(private val ctx: Context) {
         var r = 0 //EOF is -1
         var element = 0 //int representation of the parsed element.
         var content: LinkedList<String> = LinkedList() //Content when generating views.
-        var keys: LinkedList<String> = LinkedList()
+        var key: String? = null
 
         while (r != -1) {
             r = br.read() //read the next byte
@@ -142,14 +146,14 @@ class CapMLParser(private val ctx: Context) {
                     )
                 }
                 '=' -> {//add the key following the decorator.
-                    keys.add(br.readLine())
+                   key = br.readLine()
                 }
                 '-' -> {//End of Element decorator. Adds view to the linear layout.
                     ll.addView(
                         createElement(
                             element, 
                             content,
-                            keys
+                            key
                         )
                     )
                     content = LinkedList()
@@ -184,31 +188,30 @@ class CapMLParser(private val ctx: Context) {
     private fun createElement(
         element: Int,
         content: LinkedList<String>,
-        keys: LinkedList<String>
+        key: String?
     ): View {
         return when (element) {
             133 -> {
                 createCheckBox(
                     content.first,
-                    keys.first
+                    key!!
                 )
             }
             170 -> {
                 createTextView(
-                    content.first,
-                    keys.first
+                    content.first
                 )
             }
             153 -> {
                 createEditText(
                     content.first,
-                    keys.first
+                    key!!
                 )
             }
             163 -> {
                 createSpinner(
                     content,
-                    keys.first
+                    key!!
                 )
             }
             else -> {
@@ -247,7 +250,7 @@ class CapMLParser(private val ctx: Context) {
      * @return [TextView]
      */
 
-    private fun createTextView(content: String, key: String) =
+    private fun createTextView(content: String) =
         TextView(ctx).apply { text = content }
 
     /**
