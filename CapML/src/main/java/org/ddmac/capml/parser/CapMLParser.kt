@@ -265,8 +265,13 @@ class CapMLParser(private val ctx: Context) {
         }
     }
 
-    //Extension function to allow the user to map their .capml data to an associated class.
-    inline fun <reified T> JsonObject.toClass() = Gson().fromJson(this.asString,T::class.java)
+    /**
+     * Function that allows user to translate the parsers data json to a class they pass in.
+     *
+     * @param [c] is the user's class of choice
+     * @return the [Class] populated with the user's data.
+     */
+    inline fun <reified T> dataToClass(c: Class<T>): T = Gson().fromJson(data,c)
 
     inner class ETWatcher(val key: String): TextWatcher{
         override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
