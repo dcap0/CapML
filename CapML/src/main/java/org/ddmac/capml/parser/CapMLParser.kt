@@ -16,6 +16,10 @@ import java.io.*
 import java.util.*
 
 /**
+ * @author Dennis Capone
+ */
+
+/**
  * This class parses the .capml file
  *
  * @property [ctx] the context used to generate Android UI Elements.
