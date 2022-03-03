@@ -6,7 +6,6 @@ import android.text.TextWatcher
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.core.content.contentValuesOf
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -30,7 +29,7 @@ class CapMLParser(private val ctx: Context) {
 
     /**
      * Takes the [capmlFile] and opens a stream to it.
-     * Manually iterates throug bytes.
+     * Manually iterates through bytes.
      * Looks for the .capml...decorators? Flags?
      *
      * @return a [ScrollView] containing the elements, order maintained.
@@ -294,9 +293,9 @@ class CapMLParser(private val ctx: Context) {
      * @return [JsonObject]
      */
 
-    fun <T> classToData(c: T): JsonObject = JsonParser.parseString(Gson().toJson(c)).asJsonObject.also { println("HERE: ${it.toString()}") }
+    fun <T> classToData(c: T): JsonObject = JsonParser.parseString(Gson().toJson(c)).asJsonObject
 
-    inner class ETWatcher(val key: String): TextWatcher{
+    inner class ETWatcher(private val key: String): TextWatcher{
         override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
         override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
