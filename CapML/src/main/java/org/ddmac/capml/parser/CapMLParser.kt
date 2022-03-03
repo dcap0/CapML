@@ -6,8 +6,10 @@ import android.text.TextWatcher
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.core.content.contentValuesOf
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import org.ddmac.capml.R
 import org.ddmac.capml.exceptions.CapmlFileFormatException
 import org.ddmac.capml.exceptions.CapmlParseException
@@ -24,7 +26,7 @@ import java.util.*
 class CapMLParser(private val ctx: Context) {
 
     //the data will go here.
-    val data = JsonObject()
+    var data = JsonObject()
 
     /**
      * Takes the [capmlFile] and opens a stream to it.
@@ -194,7 +196,7 @@ class CapMLParser(private val ctx: Context) {
         return when (element) {
             133 -> {
                 if(key==null) throw CapmlParseException("CB element must have key decorator (=) and value")
-                data.addProperty(key,"")
+                if(!data.has(key)){ data.addProperty(key,"") }
                 createCheckBox(content.first,key)
             }
             170 -> {
@@ -202,12 +204,12 @@ class CapMLParser(private val ctx: Context) {
             }
             153 -> {
                 if(key == null) throw CapmlParseException("Element ET must have key decorator (=) and value")
-                data.addProperty(key,"")
+                if(!data.has(key))data.addProperty(key,"")
                 createEditText(content.first,key)
             }
             163 -> {
                 if(key==null) throw CapmlParseException("Element SP must have key decorator (=) and value")
-                data.addProperty(key,"")
+                if(!data.has(key)) data.addProperty(key,"")
                 createSpinner(content,key)
             }
             else -> {
@@ -217,8 +219,10 @@ class CapMLParser(private val ctx: Context) {
     }
 
 
+
     /**
-     * Makes the [CheckBox] text content be [content]
+     * Makes the [CheckBox] text content be [content].
+     * If the parser object's data has the key, it will set it checked based on it's value.
      *
      * @return [CheckBox]
      */
@@ -226,10 +230,13 @@ class CapMLParser(private val ctx: Context) {
         CheckBox(ctx).apply {
             text = content
             setOnCheckedChangeListener { _, isChecked -> data.addProperty(key,isChecked) }
+            isChecked = data.get(key).asBoolean
         }
 
     /**
      * Makes the [EditText] hint content be [content]
+     * If the parser's data object has a value for the key provided,
+     *  The [EditText] will be populated with that value.
      *
      * @return [EditText]
      */
@@ -237,6 +244,7 @@ class CapMLParser(private val ctx: Context) {
     private fun createEditText(content: String, key: String) =
         EditText(ctx).apply {
             hint = content
+            setText((data.get(key)?:"").toString())
             addTextChangedListener(ETWatcher((key)))
         }
 
@@ -253,25 +261,40 @@ class CapMLParser(private val ctx: Context) {
      * Creates a [Spinner]
      * Creates an [ArrayAdapter] from the [content], with a space pushed to the front
      * Applies the [ArrayAdapter] to the [Spinner]
+     * If the parse object's data object has a value,
+     *  that value will be selected if it exists in the [Spinner]
      *
      * @return [Spinner]
      */
 
     private fun createSpinner(content: LinkedList<String>, key: String): Spinner {
         content.push(" ")
+        val index = if(data.has(key)){
+            content.indexOf(data.get(key).toString())
+        } else { 0 }
          return Spinner(ctx).apply {
             adapter = ArrayAdapter(ctx, R.layout.spinner_content,content)
-            onItemSelectedListener = SPListener(key,this)
+            onItemSelectedListener = SPListener(key)
+            this.setSelection(index)
         }
     }
 
     /**
-     * Function that allows user to translate the parsers data json to a class they pass in.
+     * Function that allows user to translate the parser's data json to a class they pass in.
      *
      * @param [c] is the user's class of choice
      * @return the [Class] populated with the user's data.
      */
     inline fun <reified T> dataToClass(c: Class<T>): T = Gson().fromJson(data,c)
+
+    /**
+     * Function that takes user data class and translates into a JsonObject.
+     *
+     * @param [c] the user's [Class]
+     * @return [JsonObject]
+     */
+
+    fun <T> classToData(c: T): JsonObject = JsonParser.parseString(Gson().toJson(c)).asJsonObject.also { println("HERE: ${it.toString()}") }
 
     inner class ETWatcher(val key: String): TextWatcher{
         override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -284,7 +307,7 @@ class CapMLParser(private val ctx: Context) {
 
     }
 
-    inner class SPListener(private val key: String, private val spinner: Spinner): AdapterView.OnItemSelectedListener{
+    inner class SPListener(private val key: String): AdapterView.OnItemSelectedListener{
         override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
             data.addProperty(key, (view as TextView).text.toString())
         }
