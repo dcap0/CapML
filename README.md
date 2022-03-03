@@ -7,8 +7,9 @@ A minimal, declarative markup language for Android UI.
 CapML
 '~' - Denotes the type of Android UI Element.
 '+' - Denotes the user facing content of the Element. Can be one line or many lines.
+'=' - Denotes the key in the parser object's JsonObject.
 '-' - Denotes end of defining element.
-'#' - Denotes Comment
+'#' - Denotes Comment.
 
 All lines end in newline.
 

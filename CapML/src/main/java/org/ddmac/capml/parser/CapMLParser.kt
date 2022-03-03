@@ -105,7 +105,7 @@ class CapMLParser(private val ctx: Context) {
 
     /**
      * Takes the [capmlData] and opens a stream to it.
-     * Manually iterates throug bytes.
+     * Manually iterates through bytes.
      * Looks for the .capml...decorators? Flags?
      *
      * @return a [ScrollView] containing the elements, order maintained.
