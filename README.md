@@ -83,10 +83,7 @@ Current Version: 0.0.1
   
 ## License
 
-Uh?
-Dunno yet...
-- [Creative Commons](https://creativecommons.org/) - Used to choose
-  the license
+See LICENSE.md
 
 ## Acknowledgement
  - That weird flow state.
