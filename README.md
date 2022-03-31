@@ -75,10 +75,10 @@ Eventually will probably have guidelines
 
 We use [Semantic Versioning](http://semver.org/) for versioning.
 
-Current Version: 0.0.1
+Current Version: 0.5.0
 
 ## Authors
-- **Dennis Capone** - *Wrote alpha parser*- 
+- **Dennis Capone** - *Wrote parser*- 
   [dcap0](https://github.com/dcap0)
   
 ## License
