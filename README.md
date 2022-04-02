@@ -16,11 +16,12 @@ All lines end in newline.
 Ex.
 
 ~ET
-+ Hint Value
++Hint Value
+=DataKey
 -
 ```
 
-The above produces:
+The above produces an EditText with a hint, that updates the value in the parser's JSON object:
 
 
 ![img.png](misc/img.png)
