@@ -8,11 +8,6 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import com.google.android.material.checkbox.MaterialCheckBox
-import com.google.android.material.datepicker.MaterialTextInputPicker
-import com.google.android.material.textfield.TextInputEditText
-import com.google.android.material.textfield.TextInputLayout
-import com.google.android.material.textview.MaterialTextView
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -89,7 +84,6 @@ class CapMLParser(
                     content.add(
                         br
                             .readLine()
-                            .replaceFirst("+", "")
                             .trim()
                     )
                 }
@@ -163,44 +157,6 @@ class CapMLParser(
         }
     }
 
-    /**
-     * Takes [element] value to determine the element type.
-     * Depending on the [element], the [content] may be one or many.
-     *
-     * @return the [View] subclass denoted by the [element]
-     */
-
-    private fun createElement(
-        element: Int,
-        content: LinkedList<String>,
-        key: String?,
-        attr: AttributeSet
-    ): View {
-        return when (element) {
-            133 -> {
-                if(key==null) throw CapmlParseException("CB element must have key decorator (=) and value")
-                if(!data.has(key)){ data.addProperty(key,"") }
-                createCheckBox(content.first,key,attr)
-            }
-            170 -> {
-                createTextView(content.first,attr)
-            }
-            153 -> {
-                if(key == null) throw CapmlParseException("Element ET must have key decorator (=) and value")
-                if(!data.has(key))data.addProperty(key,"")
-                createEditText(content.first,key,attr)
-            }
-            163 -> {
-                if(key==null) throw CapmlParseException("Element SP must have key decorator (=) and value")
-                if(!data.has(key)) data.addProperty(key,"")
-                createSpinner(content,key,attr)
-            }
-            else -> {
-                View(ctx)
-            }
-        }
-    }
-
 
     /**
      * Makes the [CheckBox] text content be [content].
@@ -214,22 +170,6 @@ class CapMLParser(
             setOnCheckedChangeListener { _, isChecked -> data.addProperty(key,isChecked) }
             isChecked = data.get(key).asBoolean
         }
-
-
-    /**
-     * Makes the [CheckBox] text content be [content].
-     * If the parser object's data has the key, it will set it checked based on it's value.
-     * Applies user provided [AttributeSet]
-     *
-     * @return [CheckBox]
-     */
-    private fun createCheckBox(content: String, key: String,attr: AttributeSet) =
-        MaterialCheckBox(ctx,attr).apply {
-            text = content
-            setOnCheckedChangeListener { _, isChecked -> data.addProperty(key,isChecked) }
-            isChecked = data.get(key).asBoolean
-        }
-
 
     /**
      * Makes the [EditText] hint content be [content]
@@ -247,26 +187,6 @@ class CapMLParser(
         }
 
     /**
-     * Makes the [EditText] hint content be [content]
-     * If the parser's data object has a value for the key provided,
-     * The [EditText] will be populated with that value.
-     * Applies user provided [AttributeSet]
-     *
-     * @return [EditText]
-     */
-
-    private fun createEditText(content: String, key: String, attr: AttributeSet) =
-        TextInputLayout(ctx,attr).apply {
-            this.addView(
-                TextInputEditText(ctx,attr).apply {
-                    hint = content
-                    setText((data.get(key)?:"").toString())
-                    addTextChangedListener(ETWatcher((key)))
-                }
-            )
-        }
-
-    /**
      * Makes the [TextView] text content be [content]
      *
      * @return [TextView]
@@ -274,16 +194,6 @@ class CapMLParser(
 
     private fun createTextView(content: String) =
         TextView(ctx).apply { text = content }
-
-    /**
-     * Makes the [TextView] text content be [content]
-     * Applies user provided [AttributeSet]
-     *
-     * @return [TextView]
-     */
-
-    private fun createTextView(content: String, attr: AttributeSet) =
-        MaterialTextView(ctx,attr).apply { text = content }
 
     /**
      * Creates a [Spinner]
@@ -304,33 +214,6 @@ class CapMLParser(
             adapter = ArrayAdapter(ctx, R.layout.spinner_content,content)
             onItemSelectedListener = SPListener(key)
             this.setSelection(index)
-        }
-    }
-
-    /**
-     * Creates a [Spinner]
-     * Creates an [ArrayAdapter] from the [content], with a space pushed to the front
-     * Applies the [ArrayAdapter] to the [Spinner]
-     * If the parse object's data object has a value,
-     *  that value will be selected if it exists in the [Spinner]
-     *
-     * @return [Spinner]
-     */
-
-    private fun createSpinner(content: LinkedList<String>, key: String, attr: AttributeSet): TextInputLayout {
-        content.push(" ")
-        val index = if(data.has(key)){
-            content.indexOf(data.get(key).toString())
-        } else { 0 }
-
-        return TextInputLayout(ctx,attr).apply {
-            addView(
-                AutoCompleteTextView(ctx,attr).apply {
-                    setAdapter(ArrayAdapter(ctx, R.layout.spinner_content,content))
-                    onItemSelectedListener = SPListener(key)
-                    this.setSelection(index)
-                }
-            )
         }
     }
 
