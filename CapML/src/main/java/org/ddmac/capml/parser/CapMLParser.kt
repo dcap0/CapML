@@ -20,7 +20,6 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import java.util.*
 import java.util.logging.Logger
-import kotlin.math.log
 
 /**
  * This class parses the .capml file
@@ -58,8 +57,10 @@ class CapMLParser(
      *
      * @return a [ScrollView] containing the elements, order maintained.
      */
-
-    suspend fun parse(capmlData: InputStream): ScrollView = withContext(Dispatchers.IO){
+    @Throws(CapmlFileFormatException::class, CapmlParseException::class)
+    suspend fun parse(
+        capmlData: InputStream
+    ): ScrollView = withContext(Dispatchers.IO){
         //LinearLayout to contain elements. Basic "Style"
         val ll = LinearLayout(ctx).apply {
             layoutParams = ViewGroup.LayoutParams(
