@@ -17,6 +17,8 @@ import java.io.File
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.util.*
+import java.util.logging.Logger
+import kotlin.math.log
 
 /**
  * This class parses the .capml file
@@ -29,6 +31,8 @@ class CapMLParser(
     private val ctx: Context
 ) {
 
+    private val logger = Logger.getLogger(CapMLParser::class.simpleName ?: "CAPML-PARSER")
+    private val loggingEnabled = false
     //the data will go here.
     var data = JsonObject()
 
@@ -67,7 +71,7 @@ class CapMLParser(
         val br = BufferedReader(InputStreamReader(capmlData))
 
         var r = 0 //EOF is -1
-        var element = 0 //int representation of the parsed element.
+        var element = ""
         var content: LinkedList<String> = LinkedList() //Content when generating views.
         var key: String? = null
 
@@ -80,8 +84,7 @@ class CapMLParser(
                 } //skip to end of line on comment char
                 '~' -> {
                     //the element identifier is the bytes of the following two element chars
-                    element = (br.read() shl 8) + br.read()
-                    println(element)
+                    element = Char(br.read()).toString() + Char(br.read()).toString()
                     br.readLine()
                 }
                 '+' -> { //add the string following the decorator
@@ -132,25 +135,29 @@ class CapMLParser(
      */
 
     private fun createElement(
-        element: Int,
+        element: String,
         content: LinkedList<String>,
         key: String?
     ): View {
+        if(loggingEnabled) {
+            logger.warning(element)
+            logger.warning(element.hashCode().toString())
+        }
         return when (element.hashCode()) {
             Widgets.CB -> {
                 if (key == null) throw CapmlParseException("CB element must have key decorator (=) and value")
                 if (!data.has(key)) {
                     data.addProperty(key, "")
                 }
-                createCheckBox(content.first, key)
+                createCheckBox(content.first(), key)
             }
             Widgets.TV -> {
-                createTextView(content.first)
+                createTextView(content.first())
             }
             Widgets.ET -> {
                 if (key == null) throw CapmlParseException("Element ET must have key decorator (=) and value")
                 if (!data.has(key)) data.addProperty(key, "")
-                createEditText(content.first, key)
+                createEditText(content.first(), key)
             }
             Widgets.SP -> {
                 if (key == null) throw CapmlParseException("Element SP must have key decorator (=) and value")
@@ -212,7 +219,8 @@ class CapMLParser(
      */
 
     private fun createSpinner(content: LinkedList<String>, key: String): Spinner {
-        content.push(" ")
+        content.push("")
+        logger.warning(content.joinToString())
         val index = if (data.has(key)) {
             content.indexOf(data.get(key).toString())
         } else {
@@ -264,10 +272,10 @@ class CapMLParser(
     }
 
     private object Widgets {
-        val TV: Int = "TV".hashCode()
-        val ET: Int = "ET".hashCode()
-        val SP: Int = "SP".hashCode()
-        val CB: Int = "CB".hashCode()
+        const val TV: Int = 2690
+        const val ET: Int = 2223
+        const val SP: Int = 2653
+        const val CB: Int = 2143
     }
 
 }
