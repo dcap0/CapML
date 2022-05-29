@@ -56,8 +56,7 @@ class CapMLParser(
     }
 
     /**
-     * Takes the [capmlInputData] and opens a stream to it.
-     * Manually iterates through bytes.
+     * Takes the [capmlData] stream and manually iterates through bytes.
      * Looks for the .capml...decorators? Flags?
      * Once it has finished assembling the scrollview, executes a callback
      * using the view
@@ -66,10 +65,10 @@ class CapMLParser(
      */
     @Throws(CapmlFileFormatException::class, CapmlParseException::class)
     suspend fun parse(
-        capmlFile: InputStream,
+        capmlData: InputStream,
         callback:((View) -> Unit)
     ){
-        callback.invoke(parse(capmlFile))
+        callback.invoke(parse(capmData))
     }
 
 
