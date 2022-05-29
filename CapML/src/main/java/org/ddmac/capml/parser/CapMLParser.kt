@@ -25,8 +25,7 @@ import java.util.*
  */
 
 class CapMLParser(
-    private val ctx: Context,
-    private val userAttr: AttributeSet? = null
+    private val ctx: Context
 ) {
 
     //the data will go here.
@@ -76,8 +75,10 @@ class CapMLParser(
             if (r == -1) break //if it somehow gets here with EOF, stop
             when (Char(r)) { //int to char to check decorators
                 '#' -> { br.readLine(); continue } //skip to end of line on comment char
-                '~' -> { //the element identifier is the bytes of the following two element chars
-                    element = br.read() + br.read()
+                '~' -> {
+                    //the element identifier is the bytes of the following two element chars
+                    element = (br.read() shl 8) + br.read()
+                    println(element)
                     br.readLine()
                 }
                 '+' -> { //add the string following the decorator
@@ -91,13 +92,13 @@ class CapMLParser(
                    key = br.readLine()
                 }
                 '-' -> {//End of Element decorator. Adds view to the linear layout.
-                    ll.addView(
-                        createElement(
-                            element, 
-                            content,
-                            key
-                        )
-                    )
+//                    ll.addView(
+//                        createElement(
+//                            element,
+//                            content,
+//                            key
+//                        )
+//                    )
                     content = LinkedList()
                     br.read()
                 }
@@ -132,21 +133,21 @@ class CapMLParser(
         content: LinkedList<String>,
         key: String?
     ): View {
-        return when (element) {
-            133 -> {
+        return when (element.hashCode()) {
+            Widgets.CB -> {
                 if(key==null) throw CapmlParseException("CB element must have key decorator (=) and value")
                 if(!data.has(key)){ data.addProperty(key,"") }
                 createCheckBox(content.first,key)
             }
-            170 -> {
+            Widgets.TV -> {
                 createTextView(content.first)
             }
-            153 -> {
+            Widgets.ET -> {
                 if(key == null) throw CapmlParseException("Element ET must have key decorator (=) and value")
                 if(!data.has(key))data.addProperty(key,"")
                 createEditText(content.first,key)
             }
-            163 -> {
+            Widgets.SP -> {
                 if(key==null) throw CapmlParseException("Element SP must have key decorator (=) and value")
                 if(!data.has(key)) data.addProperty(key,"")
                 createSpinner(content,key)
@@ -253,6 +254,13 @@ class CapMLParser(
         override fun onNothingSelected(parent: AdapterView<*>?) {
             data.addProperty(key,"")
         }
+    }
+
+    private object Widgets{
+        val TV: Int = "TV".hashCode()
+        val ET: Int = "ET".hashCode()
+        val SP: Int = "SP".hashCode()
+        val CB: Int = "CB".hashCode()
     }
     
 }
