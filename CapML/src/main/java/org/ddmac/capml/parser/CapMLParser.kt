@@ -37,6 +37,42 @@ class CapMLParser(
     //the data will go here.
     var data = JsonObject()
 
+
+    /**
+     * Takes the [capmlFile] and opens a stream to it.
+     * Manually iterates through bytes.
+     * Looks for the .capml...decorators? Flags?
+     * Once it has finished assembling the scrollview, executes a callback
+     * using the view
+     *
+     * @return [Unit]
+     */
+    @Throws(CapmlFileFormatException::class, CapmlParseException::class)
+    suspend fun parse(
+        capmlFile: File,
+        callback:((View) -> Unit)
+    ){
+        callback.invoke(parse(capmlFile.inputStream()))
+    }
+
+    /**
+     * Takes the [capmlInputData] and opens a stream to it.
+     * Manually iterates through bytes.
+     * Looks for the .capml...decorators? Flags?
+     * Once it has finished assembling the scrollview, executes a callback
+     * using the view
+     *
+     * @return [Unit]
+     */
+    @Throws(CapmlFileFormatException::class, CapmlParseException::class)
+    suspend fun parse(
+        capmlFile: InputStream,
+        callback:((View) -> Unit)
+    ){
+        callback.invoke(parse(capmlFile))
+    }
+
+
     /**
      * Takes the [capmlFile] and opens a stream to it.
      * Manually iterates through bytes.
