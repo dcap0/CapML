@@ -9,6 +9,8 @@ import android.widget.*
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.ddmac.capml.R
 import org.ddmac.capml.exceptions.CapmlFileFormatException
 import org.ddmac.capml.exceptions.CapmlParseException
@@ -18,7 +20,6 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import java.util.*
 import java.util.logging.Logger
-import kotlin.math.log
 
 /**
  * This class parses the .capml file
@@ -36,6 +37,41 @@ class CapMLParser(
     //the data will go here.
     var data = JsonObject()
 
+
+    /**
+     * Takes the [capmlFile] and opens a stream to it.
+     * Manually iterates through bytes.
+     * Looks for the .capml...decorators? Flags?
+     * Once it has finished assembling the scrollview, executes a callback
+     * using the view
+     *
+     * @return [Unit]
+     */
+    @Throws(CapmlFileFormatException::class, CapmlParseException::class)
+    suspend fun parse(
+        capmlFile: File,
+        callback:((View) -> Unit)
+    ){
+        callback.invoke(parse(capmlFile.inputStream()))
+    }
+
+    /**
+     * Takes the [capmlData] stream and manually iterates through bytes.
+     * Looks for the .capml...decorators? Flags?
+     * Once it has finished assembling the scrollview, executes a callback
+     * using the view
+     *
+     * @return [Unit]
+     */
+    @Throws(CapmlFileFormatException::class, CapmlParseException::class)
+    suspend fun parse(
+        capmlData: InputStream,
+        callback:((View) -> Unit)
+    ){
+        callback.invoke(parse(capmlData))
+    }
+
+
     /**
      * Takes the [capmlFile] and opens a stream to it.
      * Manually iterates through bytes.
@@ -44,7 +80,7 @@ class CapMLParser(
      * @return a [ScrollView] containing the elements, order maintained.
      */
     @Throws(CapmlFileFormatException::class, CapmlParseException::class)
-    fun parse(capmlFile: File): ScrollView {
+    suspend fun parse(capmlFile: File): ScrollView {
         return parse(capmlFile.inputStream())
     }
 
@@ -56,8 +92,10 @@ class CapMLParser(
      *
      * @return a [ScrollView] containing the elements, order maintained.
      */
-
-    fun parse(capmlData: InputStream): ScrollView {
+    @Throws(CapmlFileFormatException::class, CapmlParseException::class)
+    suspend fun parse(
+        capmlData: InputStream
+    ): ScrollView = withContext(Dispatchers.IO){
         //LinearLayout to contain elements. Basic "Style"
         val ll = LinearLayout(ctx).apply {
             layoutParams = ViewGroup.LayoutParams(
@@ -116,7 +154,7 @@ class CapMLParser(
         capmlData.close()
 
         //Wrap the linear layout in a scroll view. Accounts for many elements. More "Style"
-        return ScrollView(ctx)
+        ScrollView(ctx)
             .apply {
                 layoutParams = ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
