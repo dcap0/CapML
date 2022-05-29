@@ -9,6 +9,8 @@ import android.widget.*
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.ddmac.capml.R
 import org.ddmac.capml.exceptions.CapmlFileFormatException
 import org.ddmac.capml.exceptions.CapmlParseException
@@ -44,7 +46,7 @@ class CapMLParser(
      * @return a [ScrollView] containing the elements, order maintained.
      */
     @Throws(CapmlFileFormatException::class, CapmlParseException::class)
-    fun parse(capmlFile: File): ScrollView {
+    suspend fun parse(capmlFile: File): ScrollView {
         return parse(capmlFile.inputStream())
     }
 
@@ -57,7 +59,7 @@ class CapMLParser(
      * @return a [ScrollView] containing the elements, order maintained.
      */
 
-    fun parse(capmlData: InputStream): ScrollView {
+    suspend fun parse(capmlData: InputStream): ScrollView = withContext(Dispatchers.IO){
         //LinearLayout to contain elements. Basic "Style"
         val ll = LinearLayout(ctx).apply {
             layoutParams = ViewGroup.LayoutParams(
@@ -116,7 +118,7 @@ class CapMLParser(
         capmlData.close()
 
         //Wrap the linear layout in a scroll view. Accounts for many elements. More "Style"
-        return ScrollView(ctx)
+        ScrollView(ctx)
             .apply {
                 layoutParams = ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
