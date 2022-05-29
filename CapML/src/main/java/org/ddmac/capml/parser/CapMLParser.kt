@@ -220,7 +220,7 @@ class CapMLParser(
 
     private fun createSpinner(content: LinkedList<String>, key: String): Spinner {
         content.push("")
-        logger.warning(content.joinToString())
+        if(loggingEnabled) logger.warning(content.joinToString())
         val index = if (data.has(key)) {
             content.indexOf(data.get(key).toString())
         } else {
