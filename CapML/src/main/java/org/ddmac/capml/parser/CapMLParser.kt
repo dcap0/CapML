@@ -68,7 +68,7 @@ class CapMLParser(
         capmlData: InputStream,
         callback:((View) -> Unit)
     ){
-        callback.invoke(parse(capmData))
+        callback.invoke(parse(capmlData))
     }
 
 
